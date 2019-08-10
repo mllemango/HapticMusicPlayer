@@ -7,7 +7,8 @@
     tools:context="com.example.hapticmusicplayer.MainActivity"
     android:orientation="vertical"
     android:gravity="center_horizontal"
-    android:weightSum="100" >
+    android:weightSum="100"
+    android:id="@+id/myView">
 
     <TextView
         android:id="@+id/songTitle"
@@ -20,14 +21,13 @@
         android:textColor="#E91E63"
         android:textSize="28sp" />
 
-    <Button
+    <ImageView
         android:id="@+id/playBtn"
         android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:layout_weight="30"
         android:layout_marginTop="10dp"
-        android:background="@drawable/play"
-        android:onClick="playBtnClick" />
+        android:src="@drawable/play" />
 
     <SeekBar
         android:id="@+id/positionBar"
@@ -60,20 +60,20 @@
         android:layout_weight="29"
         android:gravity="center_horizontal">
 
-        <Button
+        <ImageView
             android:id="@+id/prevBtn"
             android:layout_width="165dp"
             android:layout_height="match_parent"
             android:layout_marginRight="10dp"
-            android:background="@drawable/backward"
+            android:src="@drawable/backward"
             android:onClick="prevBtnClick" />
 
-        <Button
+        <ImageView
             android:id="@+id/nextBtn"
             android:layout_width="165dp"
             android:layout_height="match_parent"
             android:layout_marginLeft="10dp"
-            android:background="@drawable/forward"
+            android:src="@drawable/forward"
             android:onClick="nextBtnClick"/>
     </LinearLayout>
 

@@ -1,20 +1,26 @@
 package com.example.hapticmusicplayer;
 
+import android.content.res.Resources;
+import android.media.Image;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
-    Button playBtn;
-    Button nextBtn;
-    Button prevBtn;
+    ImageView playBtn;
+    ImageView nextBtn;
+    ImageView prevBtn;
     SeekBar positionBar;
     SeekBar volumeBar;
     TextView elapsedTimeLabel;
@@ -29,12 +35,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        playBtn = (Button) findViewById(R.id.playBtn);
-        nextBtn = (Button) findViewById(R.id.nextBtn);
-        prevBtn = (Button) findViewById(R.id.prevBtn);
+        playBtn = (ImageView) findViewById(R.id.playBtn);
+        nextBtn = (ImageView) findViewById(R.id.nextBtn);
+        prevBtn = (ImageView) findViewById(R.id.prevBtn);
         elapsedTimeLabel = (TextView) findViewById(R.id.elapsedTimeLabel);
         remainingTimeLabel = (TextView) findViewById(R.id.remainingTimeLabel);
         title = (TextView) findViewById(R.id.songTitle);
+        LinearLayout myView = (LinearLayout) findViewById(R.id.myView);
 
         // Media Player
         mp = MediaPlayer.create(this, R.raw.music2);
@@ -70,6 +77,8 @@ public class MainActivity extends AppCompatActivity {
                 }
         );
 
+
+
         // Thread (Update positionBar & timeLabel)
         new Thread(new Runnable() {
             @Override
@@ -85,7 +94,74 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
 
+        myView.setOnTouchListener(handleTouch);
+
+//        //the on release motions
+//        playBtn.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View view, MotionEvent event) {
+//                if (event.getAction()== MotionEvent.ACTION_UP){
+//                    playBtnClick(view);
+//                }
+//                return true;
+//            }
+//        });
+
     }
+
+    public static int getScreenWidth() {
+        return Resources.getSystem().getDisplayMetrics().widthPixels;
+    }
+
+    public static int getScreenHeight() {
+        return Resources.getSystem().getDisplayMetrics().heightPixels;
+    }
+
+    private View.OnTouchListener handleTouch = new View.OnTouchListener() {
+
+        int width = getScreenWidth();
+        int height = getScreenHeight();
+
+        //play button is top ~50 percent
+        double playBtnHeight = height * 0.48;
+
+        //next and back buttons are 50-70 percent
+        double skipBtnsHeight = height*0.7;
+        double skipBtnsWidth = width*0.5;
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+
+            int x = (int) event.getX();
+            int y = (int) event.getY();
+
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_UP:
+                    Log.i("TAG", "touched up" + " (" + x + ", " + y + ")");
+
+                    if(y < playBtnHeight){
+                        playpause(v);
+                        Log.i("TAG", "play/pause");
+                    }
+                    else if(y < skipBtnsHeight){
+                        if(x<skipBtnsWidth){
+                            //back button is pressed
+                            prevBtnClick(v);
+                            Log.i("TAG", "back");
+                        }
+                        else{
+                            nextBtnClick(v);
+                            Log.i("TAG", "next");
+                        }
+                    }
+                    break;
+            }
+
+
+
+            return true;
+        }
+    };
 
     private Handler handler = new Handler() {
         @Override
@@ -107,6 +183,7 @@ public class MainActivity extends AppCompatActivity {
         totalTime = mp.getDuration();
 
         positionBar = (SeekBar) findViewById(R.id.positionBar);
+        positionBar.setEnabled(false);
         positionBar.setMax(totalTime);
         positionBar.setOnSeekBarChangeListener(
                 new SeekBar.OnSeekBarChangeListener() {
@@ -131,6 +208,8 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
+
+
     public String createTimeLabel(int time) {
         String timeLabel = "";
         int min = time / 1000 / 60;
@@ -142,6 +221,8 @@ public class MainActivity extends AppCompatActivity {
 
         return timeLabel;
     }
+
+
 
     public void playBtnClick(View view) {
 
@@ -156,6 +237,19 @@ public class MainActivity extends AppCompatActivity {
             playBtn.setBackgroundResource(R.drawable.play);
         }
 
+    }
+
+    public void playpause(View view){
+        if (!mp.isPlaying()) {
+            // Stopping
+            mp.start();
+            playBtn.setImageResource(R.drawable.stop);
+
+        } else {
+            // Playing
+            mp.pause();
+            playBtn.setImageResource(R.drawable.play);
+        }
     }
 
     public void nextBtnClick(View view){
@@ -187,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
 
         setPositionBar();
         mp.start();
-        playBtn.setBackgroundResource(R.drawable.stop);
+        playBtn.setImageResource(R.drawable.stop);
     }
 
     public void prevBtnClick(View view){
@@ -220,6 +314,6 @@ public class MainActivity extends AppCompatActivity {
 
         setPositionBar();
         mp.start();
-        playBtn.setBackgroundResource(R.drawable.stop);
+        playBtn.setImageResource(R.drawable.stop);
     }
 }
