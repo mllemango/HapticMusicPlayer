@@ -1,5 +1,6 @@
 package com.example.hapticmusicplayer;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.media.Image;
 import android.media.MediaPlayer;
@@ -16,6 +17,14 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import org.puredata.android.io.AudioParameters;
+import org.puredata.android.io.PdAudio;
+import org.puredata.android.utils.PdUiDispatcher;
+import org.puredata.core.PdBase;
+
+import java.io.File;
+import java.io.IOException;
+
 public class MainActivity extends AppCompatActivity {
 
     ImageView playBtn;
@@ -30,11 +39,18 @@ public class MainActivity extends AppCompatActivity {
     String currentSong = null;
     TextView title;
 
+    PDPatch patch;
+
+    protected Context context;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+//        Context mcontext = context.getApplicationContext();
+        File dir = getFilesDir();
+//        patch = new PDPatch(this, dir);
         playBtn = (ImageView) findViewById(R.id.playBtn);
         nextBtn = (ImageView) findViewById(R.id.nextBtn);
         prevBtn = (ImageView) findViewById(R.id.prevBtn);
@@ -47,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         mp = MediaPlayer.create(this, R.raw.music2);
         mp.setLooping(true);
         mp.seekTo(0);
-        mp.setVolume(0.5f, 0.5f);
+        mp.setVolume(0f, 0.5f);
         currentSong = "music2";
         title.setText("Butterfly Kiss");
 
@@ -96,17 +112,61 @@ public class MainActivity extends AppCompatActivity {
 
         myView.setOnTouchListener(handleTouch);
 
-//        //the on release motions
-//        playBtn.setOnTouchListener(new View.OnTouchListener() {
-//            @Override
-//            public boolean onTouch(View view, MotionEvent event) {
-//                if (event.getAction()== MotionEvent.ACTION_UP){
-//                    playBtnClick(view);
-//                }
-//                return true;
-//            }
-//        });
+        try{
+            initPD();
+            loadPDPatch(dir);
+        }
+        catch (IOException e) {
+            Log.i("onCreate", "initialization and loading gone wrong :(");
+            finish();
+        }
 
+    }
+
+    private PdUiDispatcher dispatcher;
+
+    private void initPD() throws IOException {
+        int samplerate = AudioParameters.suggestSampleRate();
+        PdAudio.initAudio(samplerate, 0 , 2, 8, true);
+
+        dispatcher = new PdUiDispatcher();
+        PdBase.setReceiver(dispatcher);
+
+    }
+
+    private void loadPDPatch(File dir){
+
+        File pdPatch = new File(dir, "test_all_waves.pd");
+        try {
+            PdBase.openPatch(pdPatch.getAbsolutePath());
+        } catch (IOException e) {
+            Log.i("opening patch", "error opening patch");
+            Log.i("opening patch", e.toString());
+        }
+
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        PdAudio.startAudio(this);
+
+    }
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+        PdAudio.stopAudio();
+    }
+
+    //toggle button to control sine on/off:
+    public void playSine(View view) {
+        PdBase.sendFloat("sineonOff", 1.0f);
+        PdBase.sendFloat("sinefreqNum", 65);
+    }
+
+    public void stopSine(View view){
+        PdBase.sendFloat("sineonOff", 0.0f);
     }
 
     public static int getScreenWidth() {
@@ -140,7 +200,8 @@ public class MainActivity extends AppCompatActivity {
                     Log.i("TAG", "touched up" + " (" + x + ", " + y + ")");
 
                     if(y < playBtnHeight){
-                        playpause(v);
+                        playBtnClick(v);
+                        stopSine(v);
                         Log.i("TAG", "play/pause");
                     }
                     else if(y < skipBtnsHeight){
@@ -155,6 +216,19 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                     break;
+                case MotionEvent.ACTION_DOWN:
+                    if(y < playBtnHeight) {
+                        playSine(v);
+                        Log.i("TAG", "playing sine");
+                    }
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    if(y < playBtnHeight) {
+                        playSine(v);
+                        Log.i("TAG", "playing sine");
+                    }
+                    break;
+
             }
 
 
@@ -209,7 +283,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     public String createTimeLabel(int time) {
         String timeLabel = "";
         int min = time / 1000 / 60;
@@ -229,20 +302,6 @@ public class MainActivity extends AppCompatActivity {
         if (!mp.isPlaying()) {
             // Stopping
             mp.start();
-            playBtn.setBackgroundResource(R.drawable.stop);
-
-        } else {
-            // Playing
-            mp.pause();
-            playBtn.setBackgroundResource(R.drawable.play);
-        }
-
-    }
-
-    public void playpause(View view){
-        if (!mp.isPlaying()) {
-            // Stopping
-            mp.start();
             playBtn.setImageResource(R.drawable.stop);
 
         } else {
@@ -250,6 +309,7 @@ public class MainActivity extends AppCompatActivity {
             mp.pause();
             playBtn.setImageResource(R.drawable.play);
         }
+
     }
 
     public void nextBtnClick(View view){
