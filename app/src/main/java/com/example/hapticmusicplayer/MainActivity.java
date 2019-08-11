@@ -112,61 +112,6 @@ public class MainActivity extends AppCompatActivity {
 
         myView.setOnTouchListener(handleTouch);
 
-        try{
-            initPD();
-            loadPDPatch(dir);
-        }
-        catch (IOException e) {
-            Log.i("onCreate", "initialization and loading gone wrong :(");
-            finish();
-        }
-
-    }
-
-    private PdUiDispatcher dispatcher;
-
-    private void initPD() throws IOException {
-        int samplerate = AudioParameters.suggestSampleRate();
-        PdAudio.initAudio(samplerate, 0 , 2, 8, true);
-
-        dispatcher = new PdUiDispatcher();
-        PdBase.setReceiver(dispatcher);
-
-    }
-
-    private void loadPDPatch(File dir){
-
-        File pdPatch = new File(dir, "test_all_waves.pd");
-        try {
-            PdBase.openPatch(pdPatch.getAbsolutePath());
-        } catch (IOException e) {
-            Log.i("opening patch", "error opening patch");
-            Log.i("opening patch", e.toString());
-        }
-
-    }
-
-    @Override
-    protected void onResume(){
-        super.onResume();
-        PdAudio.startAudio(this);
-
-    }
-
-    @Override
-    protected void onPause(){
-        super.onPause();
-        PdAudio.stopAudio();
-    }
-
-    //toggle button to control sine on/off:
-    public void playSine(View view) {
-        PdBase.sendFloat("sineonOff", 1.0f);
-        PdBase.sendFloat("sinefreqNum", 65);
-    }
-
-    public void stopSine(View view){
-        PdBase.sendFloat("sineonOff", 0.0f);
     }
 
     public static int getScreenWidth() {
@@ -184,6 +129,8 @@ public class MainActivity extends AppCompatActivity {
 
         //play button is top ~50 percent
         double playBtnHeight = height * 0.48;
+        double settingsBtnWidth = width * 0.11;
+        double settingsBtnHeight = height * 0.11;
 
         //next and back buttons are 50-70 percent
         double skipBtnsHeight = height*0.7;
@@ -200,9 +147,15 @@ public class MainActivity extends AppCompatActivity {
                     Log.i("TAG", "touched up" + " (" + x + ", " + y + ")");
 
                     if(y < playBtnHeight){
-                        playBtnClick(v);
-                        stopSine(v);
-                        Log.i("TAG", "play/pause");
+                        if(x<settingsBtnWidth && y<settingsBtnHeight){
+                            Log.i("TAG", "settings");
+                        }
+                        else{
+                            playBtnClick(v);
+                            Log.i("TAG", "play/pause");
+
+                        }
+
                     }
                     else if(y < skipBtnsHeight){
                         if(x<skipBtnsWidth){
@@ -218,84 +171,19 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case MotionEvent.ACTION_DOWN:
                     if(y < playBtnHeight) {
-                        playSine(v);
                         Log.i("TAG", "playing sine");
                     }
                     break;
                 case MotionEvent.ACTION_MOVE:
                     if(y < playBtnHeight) {
-                        playSine(v);
                         Log.i("TAG", "playing sine");
                     }
                     break;
 
             }
-
-
-
             return true;
         }
     };
-
-    private Handler handler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            int currentPosition = msg.what;
-            // Update positionBar.
-            positionBar.setProgress(currentPosition);
-
-            // Update Labels.
-            String elapsedTime = createTimeLabel(currentPosition);
-            elapsedTimeLabel.setText(elapsedTime);
-
-            String remainingTime = createTimeLabel(totalTime-currentPosition);
-            remainingTimeLabel.setText("- " + remainingTime);
-        }
-    };
-
-    private void setPositionBar(){
-        totalTime = mp.getDuration();
-
-        positionBar = (SeekBar) findViewById(R.id.positionBar);
-        positionBar.setEnabled(false);
-        positionBar.setMax(totalTime);
-        positionBar.setOnSeekBarChangeListener(
-                new SeekBar.OnSeekBarChangeListener() {
-                    @Override
-                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                        if (fromUser) {
-                            mp.seekTo(progress);
-                            positionBar.setProgress(progress);
-                        }
-                    }
-
-                    @Override
-                    public void onStartTrackingTouch(SeekBar seekBar) {
-
-                    }
-
-                    @Override
-                    public void onStopTrackingTouch(SeekBar seekBar) {
-
-                    }
-                }
-        );
-    }
-
-
-    public String createTimeLabel(int time) {
-        String timeLabel = "";
-        int min = time / 1000 / 60;
-        int sec = time / 1000 % 60;
-
-        timeLabel = min + ":";
-        if (sec < 10) timeLabel += "0";
-        timeLabel += sec;
-
-        return timeLabel;
-    }
-
-
 
     public void playBtnClick(View view) {
 
@@ -375,5 +263,63 @@ public class MainActivity extends AppCompatActivity {
         setPositionBar();
         mp.start();
         playBtn.setImageResource(R.drawable.stop);
+    }
+
+    private Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            int currentPosition = msg.what;
+            // Update positionBar.
+            positionBar.setProgress(currentPosition);
+
+            // Update Labels.
+            String elapsedTime = createTimeLabel(currentPosition);
+            elapsedTimeLabel.setText(elapsedTime);
+
+            String remainingTime = createTimeLabel(totalTime-currentPosition);
+            remainingTimeLabel.setText("- " + remainingTime);
+        }
+    };
+
+    private void setPositionBar(){
+        totalTime = mp.getDuration();
+
+        positionBar = (SeekBar) findViewById(R.id.positionBar);
+        positionBar.setEnabled(false);
+        positionBar.setMax(totalTime);
+        positionBar.setOnSeekBarChangeListener(
+                new SeekBar.OnSeekBarChangeListener() {
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                        if (fromUser) {
+                            mp.seekTo(progress);
+                            positionBar.setProgress(progress);
+                        }
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+
+                    }
+                }
+        );
+    }
+
+
+    public String createTimeLabel(int time) {
+        String timeLabel = "";
+        int min = time / 1000 / 60;
+        int sec = time / 1000 % 60;
+
+        timeLabel = min + ":";
+        if (sec < 10) timeLabel += "0";
+        timeLabel += sec;
+
+        return timeLabel;
     }
 }
