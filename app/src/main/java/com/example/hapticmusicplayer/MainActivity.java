@@ -1,6 +1,7 @@
 package com.example.hapticmusicplayer;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.media.Image;
 import android.media.MediaPlayer;
@@ -12,6 +13,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
@@ -24,6 +26,8 @@ import org.puredata.core.PdBase;
 
 import java.io.File;
 import java.io.IOException;
+
+import static android.provider.AlarmClock.EXTRA_MESSAGE;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,10 +43,6 @@ public class MainActivity extends AppCompatActivity {
     String currentSong = null;
     TextView title;
 
-    PDPatch patch;
-
-    protected Context context;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
 
 //        Context mcontext = context.getApplicationContext();
         File dir = getFilesDir();
-//        patch = new PDPatch(this, dir);
         playBtn = (ImageView) findViewById(R.id.playBtn);
         nextBtn = (ImageView) findViewById(R.id.nextBtn);
         prevBtn = (ImageView) findViewById(R.id.prevBtn);
@@ -148,9 +147,12 @@ public class MainActivity extends AppCompatActivity {
 
                     if(y < playBtnHeight){
                         if(x<settingsBtnWidth && y<settingsBtnHeight){
+                            //settings button is clicked
+                            settingsBtnClick(v);
                             Log.i("TAG", "settings");
                         }
                         else{
+                            //play button is clicked otherwise
                             playBtnClick(v);
                             Log.i("TAG", "play/pause");
 
@@ -184,6 +186,11 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
     };
+
+    public void settingsBtnClick(View view){
+        Intent intent = new Intent(this, PDSettings.class);
+        startActivity(intent);
+    }
 
     public void playBtnClick(View view) {
 
