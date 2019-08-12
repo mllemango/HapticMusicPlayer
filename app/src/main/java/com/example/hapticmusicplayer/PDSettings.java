@@ -1,5 +1,6 @@
 package com.example.hapticmusicplayer;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -37,6 +38,8 @@ public class PDSettings extends AppCompatActivity {
     SeekBar sawVolSlider;
 
     EditText sawVol;
+    Switch haptciSwitch;
+    Boolean haptics = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +61,10 @@ public class PDSettings extends AppCompatActivity {
         initSqr();
         initVolSaw();
 
-        Switch haptciSwitch = (Switch) findViewById(R.id.hapticSwitch);
+
+        haptciSwitch = (Switch) findViewById(R.id.hapticSwitch);
+        haptciSwitch.setChecked(getBooleanFromSP(this));
+
         haptciSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -67,10 +73,12 @@ public class PDSettings extends AppCompatActivity {
                 SharedPreferences.Editor editor = preferences.edit();
                 if(isChecked){
                     editor.putBoolean("haptic",isChecked);
+                    Log.i("haptics toggle", "true");
                 }
                 else
                 {
                     editor.putBoolean("haptic",isChecked);
+                    Log.i("haptics toggle", "false");
 
                 }
 
@@ -78,8 +86,12 @@ public class PDSettings extends AppCompatActivity {
                 // how do i toggle visibility of mExplanation text in my QuizActivity.java from here?
             }
         });
-        hapticSwitchChange();
 
+    }
+
+    public boolean getBooleanFromSP(Context context) {
+        SharedPreferences preferences = context.getSharedPreferences("SETTINGS", MODE_PRIVATE);
+        return preferences.getBoolean("haptic", false);
     }
 
     public int sine_progress_val;
@@ -88,9 +100,6 @@ public class PDSettings extends AppCompatActivity {
 
     public int saw_vol_progress_val;
 
-    private void hapticSwitchChange(){
-
-    }
     private void initSine(){
         sineText = (EditText) findViewById(R.id.sineNum);
         sineSlider = (SeekBar) findViewById(R.id.sineSlider);
