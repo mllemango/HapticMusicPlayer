@@ -38,8 +38,12 @@ public class MainActivity extends AppCompatActivity {
     int totalTime;
     String currentSong = null;
     TextView title;
+
     Boolean haptics = false;
     int sine_progress_val = 65;
+    int sqr_progress_val = 20;
+    int saw_progress_val = 50;
+    int saw_vol_progress_val = 50;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -154,28 +158,30 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void playSine(){
-        PdBase.sendFloat("sineonOff", 1.0f);
-        PdBase.sendFloat("sinefreqNum", sine_progress_val);
+    private void playHaptics(String wave){
+        if (wave.contains("sine")){
+            playSine();
+            stopSaw();
+            stopSquare();
+        }
+        else if (wave.contains("square")){
+            Log.i("TAG", "square???");
+            playSquare();
+            stopSaw();
+            stopSquare();
+        }
+        else{
+            playSaw();
+            stopSquare();
+            stopSine();
+        }
     }
 
-    private void stopSine(){
-        PdBase.sendFloat("sineonOff", 0.0f);
+    private void stopHaptics(){
+        stopSine();
+        stopSquare();
+        stopSaw();
     }
-
-    @Override
-    protected void onResume(){
-        super.onResume();
-        PdAudio.startAudio(this);
-
-    }
-
-    @Override
-    protected void onPause(){
-        super.onPause();
-        PdAudio.stopAudio();
-    }
-
 
     public static int getScreenWidth() {
         return Resources.getSystem().getDisplayMetrics().widthPixels;
@@ -208,7 +214,7 @@ public class MainActivity extends AppCompatActivity {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_UP:
                     Log.i("TAG", "touched up" + " (" + x + ", " + y + ")");
-                    stopSine();
+                    stopHaptics();
 
                     if(y < playBtnHeight){
                         if(x<settingsBtnWidth && y<settingsBtnHeight){
@@ -237,20 +243,38 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case MotionEvent.ACTION_DOWN:
                     if(y < playBtnHeight) {
-                        playSine();
-                        Log.i("TAG", "playing sine");
+                        //play button - sine
+                        playHaptics("sine");
                     }
-                    else{
-                        stopSine();
+                    else if(y < skipBtnsHeight){
+                        if(x < skipBtnsWidth){
+                            //back button is pressed - square
+                            playHaptics("square");
+                            Log.i("TAG", "back");
+                        }
+                        else{
+                            //next button is pressed - saw
+                            playHaptics("saw");
+                            Log.i("TAG", "next");
+                        }
                     }
                     break;
                 case MotionEvent.ACTION_MOVE:
                     if(y < playBtnHeight) {
-                        playSine();
-                        Log.i("TAG", "playing sine");
+                        //play button - sine
+                        playHaptics("sine");
                     }
-                    else{
-                        stopSine();
+                    else if(y < skipBtnsHeight){
+                        if(x < skipBtnsWidth){
+                            //back button is pressed - square
+                            playHaptics("square");
+                            Log.i("TAG", "back");
+                        }
+                        else{
+                            //next button is pressed - saw
+                            playHaptics("saw");
+                            Log.i("TAG", "next");
+                        }
                     }
                     break;
 
@@ -400,5 +424,46 @@ public class MainActivity extends AppCompatActivity {
         timeLabel += sec;
 
         return timeLabel;
+    }
+
+    private void playSine(){
+        PdBase.sendFloat("sineonOff", 1.0f);
+        PdBase.sendFloat("sinefreqNum", sine_progress_val);
+    }
+
+    private void stopSine(){
+        PdBase.sendFloat("sineonOff", 0.0f);
+    }
+
+    private void playSquare(){
+        PdBase.sendFloat("sqronOff", 1.0f);
+        PdBase.sendFloat("sqrfreqNum", sqr_progress_val);
+    }
+
+    private void stopSquare(){
+        PdBase.sendFloat("sqronOff", 0.0f);
+    }
+
+    private void playSaw(){
+        PdBase.sendFloat("sawonOff", 1.0f);
+        PdBase.sendFloat("sawfreqNum", saw_progress_val);
+        PdBase.sendFloat("sawvolNum", saw_vol_progress_val);
+    }
+
+    private void stopSaw(){
+        PdBase.sendFloat("sawonOff", 0.0f);
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        PdAudio.startAudio(this);
+
+    }
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+        PdAudio.stopAudio();
     }
 }
