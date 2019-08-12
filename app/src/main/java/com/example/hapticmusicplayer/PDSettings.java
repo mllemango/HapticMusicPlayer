@@ -1,5 +1,6 @@
 package com.example.hapticmusicplayer;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -7,8 +8,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.SeekBar;
+import android.widget.Switch;
 import android.widget.ToggleButton;
 
 import org.puredata.android.io.AudioParameters;
@@ -55,6 +58,28 @@ public class PDSettings extends AppCompatActivity {
         initSqr();
         initVolSaw();
 
+        Switch haptciSwitch = (Switch) findViewById(R.id.hapticSwitch);
+        haptciSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+
+                SharedPreferences preferences = getSharedPreferences("SETTINGS", MODE_PRIVATE);
+                SharedPreferences.Editor editor = preferences.edit();
+                if(isChecked){
+                    editor.putBoolean("haptic",isChecked);
+                }
+                else
+                {
+                    editor.putBoolean("haptic",isChecked);
+
+                }
+
+                editor.apply();
+                // how do i toggle visibility of mExplanation text in my QuizActivity.java from here?
+            }
+        });
+        hapticSwitchChange();
+
     }
 
     public int sine_progress_val;
@@ -63,6 +88,9 @@ public class PDSettings extends AppCompatActivity {
 
     public int saw_vol_progress_val;
 
+    private void hapticSwitchChange(){
+
+    }
     private void initSine(){
         sineText = (EditText) findViewById(R.id.sineNum);
         sineSlider = (SeekBar) findViewById(R.id.sineSlider);

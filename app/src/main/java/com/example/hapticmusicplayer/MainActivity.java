@@ -1,9 +1,8 @@
 package com.example.hapticmusicplayer;
 
-import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
-import android.media.Image;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Message;
@@ -12,22 +11,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import org.puredata.android.io.AudioParameters;
-import org.puredata.android.io.PdAudio;
-import org.puredata.android.utils.PdUiDispatcher;
-import org.puredata.core.PdBase;
-
 import java.io.File;
-import java.io.IOException;
-
-import static android.provider.AlarmClock.EXTRA_MESSAGE;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -42,13 +31,17 @@ public class MainActivity extends AppCompatActivity {
     int totalTime;
     String currentSong = null;
     TextView title;
+    Boolean haptics = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        Context mcontext = context.getApplicationContext();
+        SharedPreferences preferences = getSharedPreferences("SETTINGS", MODE_PRIVATE);
+        haptics = preferences.getBoolean("haptics",false);//it returns stored boolean value else returns false
+
+
         File dir = getFilesDir();
         playBtn = (ImageView) findViewById(R.id.playBtn);
         nextBtn = (ImageView) findViewById(R.id.nextBtn);
