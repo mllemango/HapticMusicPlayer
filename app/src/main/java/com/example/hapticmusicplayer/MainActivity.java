@@ -16,7 +16,14 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import org.puredata.android.io.AudioParameters;
+import org.puredata.android.io.PdAudio;
+import org.puredata.android.utils.PdUiDispatcher;
+import org.puredata.core.PdBase;
+import org.puredata.core.utils.IoUtils;
+
 import java.io.File;
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -32,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     String currentSong = null;
     TextView title;
     Boolean haptics = false;
+    int sine_progress_val = 65;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,8 +111,71 @@ public class MainActivity extends AppCompatActivity {
         }).start();
 
         myView.setOnTouchListener(handleTouch);
+        if (haptics == true){
+            try {
+                Log.i("onCreate", "initializing PD page");
+                initPD();
+                loadPDPatch();
+
+            } catch (IOException e) {
+                Log.i("onCreate", "initialization and loading gone wrong :(");
+                finish();
+            }
+        }
 
     }
+
+    private PdUiDispatcher dispatcher;
+
+    private void initPD() throws IOException {
+        int samplerate = AudioParameters.suggestSampleRate();
+        PdAudio.initAudio(samplerate, 0 , 2, 8, true);
+
+        dispatcher = new PdUiDispatcher();
+        PdBase.setReceiver(dispatcher);
+
+    }
+
+    private void loadPDPatch(){
+        File dir = getFilesDir();
+        try {
+            IoUtils.extractZipResource(getResources().openRawResource(R.raw.test_all_waves), dir, true);
+            Log.i("unzipping", dir.getAbsolutePath());
+        } catch (IOException e) {
+            Log.i("unzipping", "error unzipping");
+        }
+        File pdPatch = new File(dir, "test_all_waves.pd");
+        try {
+            PdBase.openPatch(pdPatch.getAbsolutePath());
+        } catch (IOException e) {
+            Log.i("opening patch", "error opening patch");
+            Log.i("opening patch", e.toString());
+        }
+
+    }
+
+    private void playSine(){
+        PdBase.sendFloat("sineonOff", 1.0f);
+        PdBase.sendFloat("sinefreqNum", sine_progress_val);
+    }
+
+    private void stopSine(){
+        PdBase.sendFloat("sineonOff", 0.0f);
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        PdAudio.startAudio(this);
+
+    }
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+        PdAudio.stopAudio();
+    }
+
 
     public static int getScreenWidth() {
         return Resources.getSystem().getDisplayMetrics().widthPixels;
@@ -137,6 +208,7 @@ public class MainActivity extends AppCompatActivity {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_UP:
                     Log.i("TAG", "touched up" + " (" + x + ", " + y + ")");
+                    stopSine();
 
                     if(y < playBtnHeight){
                         if(x<settingsBtnWidth && y<settingsBtnHeight){
@@ -148,7 +220,6 @@ public class MainActivity extends AppCompatActivity {
                             //play button is clicked otherwise
                             playBtnClick(v);
                             Log.i("TAG", "play/pause");
-
                         }
 
                     }
@@ -166,12 +237,20 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case MotionEvent.ACTION_DOWN:
                     if(y < playBtnHeight) {
+                        playSine();
                         Log.i("TAG", "playing sine");
+                    }
+                    else{
+                        stopSine();
                     }
                     break;
                 case MotionEvent.ACTION_MOVE:
                     if(y < playBtnHeight) {
+                        playSine();
                         Log.i("TAG", "playing sine");
+                    }
+                    else{
+                        stopSine();
                     }
                     break;
 
