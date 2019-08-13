@@ -77,16 +77,16 @@
             android:layout_width="165dp"
             android:layout_height="match_parent"
             android:layout_marginRight="10dp"
-            android:src="@drawable/backward"
-            android:onClick="prevBtnClick" />
+            android:src="@drawable/backward"/>
+            <!--android:onClick="prevBtnClick" />-->
 
         <ImageView
             android:id="@+id/nextBtn"
             android:layout_width="165dp"
             android:layout_height="match_parent"
             android:layout_marginLeft="10dp"
-            android:src="@drawable/forward"
-            android:onClick="nextBtnClick"/>
+            android:src="@drawable/forward" />
+            <!-- android:onClick="nextBtnClick" />-->
     </LinearLayout>
 
     <LinearLayout

@@ -40,28 +40,57 @@ public class MainActivity extends AppCompatActivity {
     TextView title;
 
     Boolean haptics = false;
-    int sine_progress_val = 65;
-    int sqr_progress_val = 20;
-    int saw_progress_val = 50;
-    int saw_vol_progress_val = 50;
+    int sine_progress_val;
+    int sqr_progress_val;
+    int saw_progress_val;
+    int saw_vol_progress_val;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // set up for pd patches
         SharedPreferences preferences = getSharedPreferences("SETTINGS", MODE_PRIVATE);
         haptics = preferences.getBoolean("haptics",false);//it returns stored boolean value else returns false
+        Log.i("HapticMusicPlayer", "On create haptics: " + haptics);
 
+        LinearLayout myView = (LinearLayout) findViewById(R.id.myView);
 
-        File dir = getFilesDir();
+        myView.setOnTouchListener(handleTouch);
+
+        try {
+            Log.i("onCreate", "initializing PD page");
+            initPD();
+            loadPDPatch();
+
+        } catch (IOException e) {
+            Log.i("onCreate", "initialization and loading gone wrong :(");
+            finish();
+        }
+
+        if (haptics){
+            sine_progress_val = 65;
+            sqr_progress_val = 20;
+            saw_progress_val = 50;
+            saw_vol_progress_val = 50;
+        }
+        else{
+            sine_progress_val = 0;
+            sqr_progress_val = 0;
+            saw_progress_val = 0;
+            saw_vol_progress_val = 0;
+        }
+
+        //set up for the rest of the screen
+
         playBtn = (ImageView) findViewById(R.id.playBtn);
         nextBtn = (ImageView) findViewById(R.id.nextBtn);
         prevBtn = (ImageView) findViewById(R.id.prevBtn);
         elapsedTimeLabel = (TextView) findViewById(R.id.elapsedTimeLabel);
         remainingTimeLabel = (TextView) findViewById(R.id.remainingTimeLabel);
         title = (TextView) findViewById(R.id.songTitle);
-        LinearLayout myView = (LinearLayout) findViewById(R.id.myView);
+
 
         // Media Player
         mp = MediaPlayer.create(this, R.raw.music2);
@@ -97,8 +126,6 @@ public class MainActivity extends AppCompatActivity {
                 }
         );
 
-
-
         // Thread (Update positionBar & timeLabel)
         new Thread(new Runnable() {
             @Override
@@ -114,20 +141,13 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
 
-        myView.setOnTouchListener(handleTouch);
-        if (haptics == true){
-            try {
-                Log.i("onCreate", "initializing PD page");
-                initPD();
-                loadPDPatch();
-
-            } catch (IOException e) {
-                Log.i("onCreate", "initialization and loading gone wrong :(");
-                finish();
-            }
-        }
-
     }
+
+    /*
+    methods for setting up PD
+    initPD(): initialize PD
+    loadPDPatch(): loads the specific patch into the phone for usage
+     */
 
     private PdUiDispatcher dispatcher;
 
@@ -144,31 +164,34 @@ public class MainActivity extends AppCompatActivity {
         File dir = getFilesDir();
         try {
             IoUtils.extractZipResource(getResources().openRawResource(R.raw.test_all_waves), dir, true);
-            Log.i("unzipping", dir.getAbsolutePath());
+            Log.i("HapticMusicPlayer", dir.getAbsolutePath());
         } catch (IOException e) {
-            Log.i("unzipping", "error unzipping");
+            Log.i("HapticMusicPlayer", "error unzipping");
         }
         File pdPatch = new File(dir, "test_all_waves.pd");
         try {
             PdBase.openPatch(pdPatch.getAbsolutePath());
         } catch (IOException e) {
-            Log.i("opening patch", "error opening patch");
-            Log.i("opening patch", e.toString());
+            Log.i("HapticMusicPlayer", "error opening patch");
+            Log.i("HapticMusicPlayer", e.toString());
         }
 
     }
 
+    /*
+    methods of playing specific waves
+     */
     private void playHaptics(String wave){
+        //when you play a wave, gotta stop the other waves
         if (wave.contains("sine")){
             playSine();
             stopSaw();
             stopSquare();
         }
         else if (wave.contains("square")){
-            Log.i("TAG", "square???");
             playSquare();
             stopSaw();
-            stopSquare();
+            stopSine();
         }
         else{
             playSaw();
@@ -178,19 +201,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void stopHaptics(){
+        //stopping all waves
         stopSine();
         stopSquare();
         stopSaw();
     }
 
-    public static int getScreenWidth() {
-        return Resources.getSystem().getDisplayMetrics().widthPixels;
-    }
-
-    public static int getScreenHeight() {
-        return Resources.getSystem().getDisplayMetrics().heightPixels;
-    }
-
+    //specifying on touch behaviour
     private View.OnTouchListener handleTouch = new View.OnTouchListener() {
 
         int width = getScreenWidth();
@@ -211,19 +228,22 @@ public class MainActivity extends AppCompatActivity {
             int x = (int) event.getX();
             int y = (int) event.getY();
 
+            //event.getAction tells us if what the finger is doing
             switch (event.getAction()) {
+                //if user lifts finger up, they want to "press" the button
                 case MotionEvent.ACTION_UP:
-                    Log.i("TAG", "touched up" + " (" + x + ", " + y + ")");
-                    stopHaptics();
+//                    Log.i("TAG", "touched up" + " (" + x + ", " + y + ")");
+                    stopHaptics(); //stopping all the haptics when the user lifts up finger
 
+                    // determining where the user lifted their finger
                     if(y < playBtnHeight){
                         if(x<settingsBtnWidth && y<settingsBtnHeight){
-                            //settings button is clicked
+                            //settings button is selected
                             settingsBtnClick(v);
                             Log.i("TAG", "settings");
                         }
                         else{
-                            //play button is clicked otherwise
+                            //play button is selected otherwise
                             playBtnClick(v);
                             Log.i("TAG", "play/pause");
                         }
@@ -231,11 +251,12 @@ public class MainActivity extends AppCompatActivity {
                     }
                     else if(y < skipBtnsHeight){
                         if(x<skipBtnsWidth){
-                            //back button is pressed
+                            //back button is selected
                             prevBtnClick(v);
                             Log.i("TAG", "back");
                         }
                         else{
+                            //next button is selected
                             nextBtnClick(v);
                             Log.i("TAG", "next");
                         }
@@ -250,12 +271,10 @@ public class MainActivity extends AppCompatActivity {
                         if(x < skipBtnsWidth){
                             //back button is pressed - square
                             playHaptics("square");
-                            Log.i("TAG", "back");
                         }
                         else{
                             //next button is pressed - saw
                             playHaptics("saw");
-                            Log.i("TAG", "next");
                         }
                     }
                     break;
@@ -268,28 +287,26 @@ public class MainActivity extends AppCompatActivity {
                         if(x < skipBtnsWidth){
                             //back button is pressed - square
                             playHaptics("square");
-                            Log.i("TAG", "back");
                         }
                         else{
                             //next button is pressed - saw
                             playHaptics("saw");
-                            Log.i("TAG", "next");
                         }
                     }
                     break;
-
             }
             return true;
         }
     };
 
     public void settingsBtnClick(View view){
+        //goes to the settings page
         Intent intent = new Intent(this, PDSettings.class);
         startActivity(intent);
     }
 
     public void playBtnClick(View view) {
-
+        //starts playing music, else stops playing music
         if (!mp.isPlaying()) {
             // Stopping
             mp.start();
@@ -304,7 +321,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void nextBtnClick(View view){
-        mp.pause();
+        //skipping to the next song
+        mp.pause(); //have to stop the current song
+        //hardcoding the next song lol
         if (currentSong.contains("2")){
             mp = MediaPlayer.create(this, R.raw.music3);
             mp.setLooping(true);
@@ -330,12 +349,13 @@ public class MainActivity extends AppCompatActivity {
             title.setText("Butterfly Kiss");
         }
 
-        setPositionBar();
-        mp.start();
-        playBtn.setImageResource(R.drawable.stop);
+        setPositionBar(); //resetting the position bar
+        mp.start(); //starting new song
+        playBtn.setImageResource(R.drawable.stop); //play button now shows its playing
     }
 
     public void prevBtnClick(View view){
+        //similar to nextBtnClick()
         mp.pause();
 
         if (currentSong.contains("2")){
@@ -368,6 +388,9 @@ public class MainActivity extends AppCompatActivity {
         playBtn.setImageResource(R.drawable.stop);
     }
 
+    /*
+    methods for the actual music player
+     */
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -425,7 +448,9 @@ public class MainActivity extends AppCompatActivity {
 
         return timeLabel;
     }
-
+    /*
+    small misc methods used in previous methods
+     */
     private void playSine(){
         PdBase.sendFloat("sineonOff", 1.0f);
         PdBase.sendFloat("sinefreqNum", sine_progress_val);
@@ -465,5 +490,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause(){
         super.onPause();
         PdAudio.stopAudio();
+    }
+
+    public static int getScreenWidth() {
+        return Resources.getSystem().getDisplayMetrics().widthPixels;
+    }
+
+    public static int getScreenHeight() {
+        return Resources.getSystem().getDisplayMetrics().heightPixels;
     }
 }
