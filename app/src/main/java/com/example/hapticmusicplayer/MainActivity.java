@@ -53,19 +53,18 @@ public class MainActivity extends AppCompatActivity {
         // set up for pd patches
         SharedPreferences preferences = getSharedPreferences("SETTINGS", MODE_PRIVATE);
         haptics = preferences.getBoolean("haptics",false);//it returns stored boolean value else returns false
-        Log.i("HapticMusicPlayer", "On create haptics: " + haptics);
+        Log.i("HapticMusicPlayer", "main haptics: " + haptics);
 
         LinearLayout myView = (LinearLayout) findViewById(R.id.myView);
 
         myView.setOnTouchListener(handleTouch);
 
         try {
-            Log.i("onCreate", "initializing PD page");
             initPD();
             loadPDPatch();
 
         } catch (IOException e) {
-            Log.i("onCreate", "initialization and loading gone wrong :(");
+            Log.i("HapticMusicPlayer", "initialization and loading gone wrong :(");
             finish();
         }
 

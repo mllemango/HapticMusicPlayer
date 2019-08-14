@@ -1,11 +1,13 @@
 package com.example.hapticmusicplayer;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.SeekBar;
@@ -37,6 +39,7 @@ public class PDSettings extends AppCompatActivity {
     EditText sawVol;
     Switch haptciSwitch;
     Boolean haptics = false;
+    Button saveBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +63,7 @@ public class PDSettings extends AppCompatActivity {
 
 
         haptciSwitch = (Switch) findViewById(R.id.hapticSwitch);
+        haptics = getBooleanFromSP(this);
         haptciSwitch.setChecked(getBooleanFromSP(this));
 
         haptciSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -69,13 +73,13 @@ public class PDSettings extends AppCompatActivity {
                 SharedPreferences preferences = getSharedPreferences("SETTINGS", MODE_PRIVATE);
                 SharedPreferences.Editor editor = preferences.edit();
                 if(isChecked){
-                    editor.putBoolean("haptic",isChecked);
-                    Log.i("haptics toggle", "true");
+                    editor.putBoolean("haptics",isChecked);
+                    Log.i("Haptics toggle", "true");
                 }
                 else
                 {
-                    editor.putBoolean("haptic",isChecked);
-                    Log.i("haptics toggle", "false");
+                    editor.putBoolean("haptics",isChecked);
+                    Log.i("Haptics toggle", "false");
 
                 }
 
@@ -83,6 +87,8 @@ public class PDSettings extends AppCompatActivity {
                 // how do i toggle visibility of mExplanation text in my QuizActivity.java from here?
             }
         });
+
+        saveBtn = (Button) findViewById(R.id.save);
 
     }
 
@@ -283,6 +289,11 @@ public class PDSettings extends AppCompatActivity {
         } else {
             PdBase.sendFloat("sqronOff", 0.0f);
         }
+    }
+
+    public void saveBtnClick(View view){
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
     }
 }
 
