@@ -36,7 +36,7 @@ public class AlarmClock extends AppCompatActivity {
         haptics = preferences.getBoolean("haptics",false);//it returns stored boolean value else returns false
         Log.i("HapticMusicPlayer", "main haptics: " + haptics);
 
-        LinearLayout myView = (LinearLayout) findViewById(R.id.myView);
+        LinearLayout myView = (LinearLayout) findViewById(R.id.alarmView);
 
         myView.setOnTouchListener(handleTouch);
 
@@ -147,20 +147,20 @@ public class AlarmClock extends AppCompatActivity {
                     break;
                 case MotionEvent.ACTION_DOWN:
                     if(y < offBtnHeight){
-                        Log.i("HapticMusicPlayer", "alarm off");
+                        playHaptics("sine");
 
                     }
                     else{
-                        Log.i("HapticMusicPlayer", "alarm snooze");
+                        playHaptics("sqaure");
                     }
                     break;
                 case MotionEvent.ACTION_MOVE:
                     if(y < offBtnHeight){
-                        Log.i("HapticMusicPlayer", "alarm off");
+                        playHaptics("sine");
 
                     }
                     else{
-                        Log.i("HapticMusicPlayer", "alarm snooze");
+                        playHaptics("sqaure");
                     }
                     break;
             }

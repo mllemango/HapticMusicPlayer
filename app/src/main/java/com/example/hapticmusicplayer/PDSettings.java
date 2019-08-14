@@ -61,10 +61,12 @@ public class PDSettings extends AppCompatActivity {
         initSqr();
         initVolSaw();
 
-
         haptciSwitch = (Switch) findViewById(R.id.hapticSwitch);
-        haptics = getBooleanFromSP(this);
-        haptciSwitch.setChecked(getBooleanFromSP(this));
+        SharedPreferences preferences = getSharedPreferences("SETTINGS", MODE_PRIVATE);
+        haptics = preferences.getBoolean("haptics",false);//it returns stored boolean value else returns false
+
+        Log.i("HapticMusicPlayer", "settings haptics: " + haptics);
+        haptciSwitch.setChecked(haptics);
 
         haptciSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
