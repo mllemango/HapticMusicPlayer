@@ -203,6 +203,8 @@ public class MainActivity extends AppCompatActivity {
         double playBtnHeight = height * 0.48;
         double settingsBtnWidth = width * 0.11;
         double settingsBtnHeight = height * 0.11;
+        double alarmBtnWidth = width - settingsBtnWidth;
+        double alarmBtnHeight = settingsBtnHeight;
 
         //next and back buttons are 50-70 percent
         double skipBtnsHeight = height*0.7;
@@ -226,12 +228,17 @@ public class MainActivity extends AppCompatActivity {
                         if(x<settingsBtnWidth && y<settingsBtnHeight){
                             //settings button is selected
                             settingsBtnClick(v);
-                            Log.i("TAG", "settings");
+                            Log.i("HapticMusicPlayer", "settings");
+                        }
+                        else if (x>alarmBtnWidth && y<alarmBtnHeight){
+                            //alarm button is selected
+                            alarmBtnClick(v);
+                            Log.i("HapticMusicPlayer", "alarm");
                         }
                         else{
                             //play button is selected otherwise
                             playBtnClick(v);
-                            Log.i("TAG", "play/pause");
+                            Log.i("HapticMusicPlayer", "play/pause");
                         }
 
                     }
@@ -288,6 +295,12 @@ public class MainActivity extends AppCompatActivity {
     public void settingsBtnClick(View view){
         //goes to the settings page
         Intent intent = new Intent(this, PDSettings.class);
+        startActivity(intent);
+    }
+
+    public void alarmBtnClick(View view){
+        //goes to alarm page
+        Intent intent = new Intent(this, AlarmClock.class);
         startActivity(intent);
     }
 

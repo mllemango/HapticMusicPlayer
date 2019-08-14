@@ -14,22 +14,31 @@
         android:layout_width="fill_parent"
         android:layout_height="0dp"
         android:layout_weight="10"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:weightSum="100">
+
         <ImageView
-            android:layout_width="50dp"
-            android:layout_height="wrap_content"
+            android:layout_width="75dp"
+            android:layout_height="fill_parent"
             android:layout_gravity="left"
-            android:layout_marginLeft="10dp"
+            android:layout_weight="10"
             android:src="@drawable/settings" />
         <TextView
             android:id="@+id/songTitle"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_weight="80"
             android:fontFamily="sans-serif"
             android:gravity="center"
             android:text="Title"
             android:textColor="#E91E63"
             android:textSize="28sp" />
+
+        <ImageView
+            android:layout_width="75dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="10"
+            android:src="@drawable/alarm_clock" />
     </LinearLayout>
 
 
@@ -113,5 +122,6 @@
             android:layout_height="26dp"
             android:src="@drawable/sound2" />
     </LinearLayout>
+
 
 </LinearLayout>
