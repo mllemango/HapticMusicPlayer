@@ -40,10 +40,10 @@ public class MainActivity extends AppCompatActivity {
     TextView title;
 
     Boolean haptics = false;
-    int sine_progress_val;
-    int sqr_progress_val;
-    int saw_progress_val;
-    int saw_vol_progress_val;
+    int sine_progress_val = 65;
+    int sqr_progress_val = 20;
+    int saw_progress_val = 50;
+    int saw_vol_progress_val = 50;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,19 +66,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             Log.i("HapticMusicPlayer", "initialization and loading gone wrong :(");
             finish();
-        }
-
-        if (haptics){
-            sine_progress_val = 65;
-            sqr_progress_val = 20;
-            saw_progress_val = 50;
-            saw_vol_progress_val = 50;
-        }
-        else{
-            sine_progress_val = 0;
-            sqr_progress_val = 0;
-            saw_progress_val = 0;
-            saw_vol_progress_val = 0;
         }
 
         //set up for the rest of the screen
@@ -182,20 +169,20 @@ public class MainActivity extends AppCompatActivity {
      */
     private void playHaptics(String wave){
         //when you play a wave, gotta stop the other waves
-        if (wave.contains("sine")){
-            playSine();
-            stopSaw();
-            stopSquare();
-        }
-        else if (wave.contains("square")){
-            playSquare();
-            stopSaw();
-            stopSine();
-        }
-        else{
-            playSaw();
-            stopSquare();
-            stopSine();
+        if (haptics) {
+            if (wave.contains("sine")) {
+                playSine();
+                stopSaw();
+                stopSquare();
+            } else if (wave.contains("square")) {
+                playSquare();
+                stopSaw();
+                stopSine();
+            } else {
+                playSaw();
+                stopSquare();
+                stopSine();
+            }
         }
     }
 
@@ -472,6 +459,7 @@ public class MainActivity extends AppCompatActivity {
         PdBase.sendFloat("sawonOff", 1.0f);
         PdBase.sendFloat("sawfreqNum", saw_progress_val);
         PdBase.sendFloat("sawvolNum", saw_vol_progress_val);
+
     }
 
     private void stopSaw(){
