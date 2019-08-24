@@ -300,7 +300,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void alarmBtnClick(View view){
         //goes to alarm page
-        Intent intent = new Intent(this, AlarmClock.class);
+        Intent intent = new Intent(this, AlarmClockSettings.class);
         startActivity(intent);
     }
 
